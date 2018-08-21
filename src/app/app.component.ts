@@ -3,6 +3,7 @@ import { MatSelectionList, MatSelectionListChange, MatListOption } from '@angula
 import { SelectionModel } from '@angular/cdk/collections';
 import { HttpClient } from '@angular/common/http';
 import { map } from 'rxjs/operators';
+import { find, orderBy } from 'lodash';
 import { Repo} from './Repo';
 
 @Component({
@@ -12,34 +13,44 @@ import { Repo} from './Repo';
 })
 export class AppComponent implements OnInit {
   title = 'app';
-  projects: Array<Repo>;
-  @ViewChild(MatSelectionList) projectsList: MatSelectionList;
+  repos: Array<Repo>;
+  @ViewChild(MatSelectionList) reposList: MatSelectionList;
 
   constructor(private httpClient: HttpClient) {
   }
 
   onSelectionChange(event: MatSelectionListChange) {
     console.info('GOT CHANGE EVT', event.option.value);
-    //console.info('GOT CHANGE EVT****************', v);
-    // GET /repos/:owner/:repo/commits
-    const selectedRepo = this.projects[event.option.value];
-    this.httpClient.get<any>(selectedRepo.commits_url).pipe(
+    const selectedRepo = find( this.repos, (repo) => repo.id === event.option.value);
+    const url = `https://api.github.com/repos/${selectedRepo.owner.login}/${selectedRepo.name}/commits`;
+    this.httpClient.get<any>(url, {
+        observe: 'response'
+    }).pipe(
         map((x) => {
 
         return x;
     })).subscribe(
-        x => console.info('got commits', x)
+        resp => {
+            console.log(resp.headers.get('Link'));
+            console.info('got commits', resp);
+        }
     );
   }
-
+//https://api.github.com/organizations/913567/repos?page=5
   ngOnInit() {
-    this.projectsList.selectedOptions = new SelectionModel<MatListOption>(false);
-    this.httpClient.get<Array<Repo>>('https://api.github.com/orgs/Netflix/repos').pipe(
-        map((x) => {
-            this.projects = x;
-            return x;
+    this.reposList.selectedOptions = new SelectionModel<MatListOption>(false);
+    this.httpClient.get<Array<Repo>>('https://api.github.com/orgs/Netflix/repos', {
+    // this.httpClient.get<Array<Repo>>('https://api.github.com/organizations/913567/repos?page=5', {
+        observe: 'response'
+    }).pipe(
+        map((repos) => {
+            this.repos = orderBy(repos.body, ['forks'], ['desc']);
+            return repos;
     })).subscribe(
-        x => console.info('got resp', x)
+        resp =>  {
+            console.log(resp.headers.get('Link'));
+            console.info('got resp', resp);
+        }
     );
   }
 

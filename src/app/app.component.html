@@ -1,5 +1,5 @@
-<mat-selection-list  (selectionChange)='onSelectionChange($event)'  #projectsList>
-  <mat-list-option *ngFor="let project of projects"  [value]='project.id'>
-       {{project.name}}
+<mat-selection-list  (selectionChange)='onSelectionChange($event)'  #reposList>
+  <mat-list-option *ngFor="let repo of repos"  [value]='repo.id'>
+       {{repo.name}} ({{repo.forks}})
  </mat-list-option>
  </mat-selection-list>
