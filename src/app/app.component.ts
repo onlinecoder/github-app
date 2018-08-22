@@ -14,6 +14,9 @@ import { Repo} from './Repo';
 export class AppComponent implements OnInit {
   title = 'app';
   repos: Array<Repo>;
+  commits: Array<Commit>;
+  columnsToDisplay = ['commitMessage', 'commitAuthor'];
+
   @ViewChild(MatSelectionList) reposList: MatSelectionList;
 
   constructor(private httpClient: HttpClient) {
@@ -23,15 +26,12 @@ export class AppComponent implements OnInit {
     console.info('GOT CHANGE EVT', event.option.value);
     const selectedRepo = find( this.repos, (repo) => repo.id === event.option.value);
     const url = `https://api.github.com/repos/${selectedRepo.owner.login}/${selectedRepo.name}/commits`;
-    this.httpClient.get<any>(url, {
-        observe: 'response'
-    }).pipe(
+    this.httpClient.get<any>(url).pipe(
         map((x) => {
-
-        return x;
+            this.commits = x;
+            return x;
     })).subscribe(
         resp => {
-            console.log(resp.headers.get('Link'));
             console.info('got commits', resp);
         }
     );
