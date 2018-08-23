@@ -6,8 +6,11 @@ import { MatListModule } from '@angular/material/list';
 import { MatInputModule } from '@angular/material/input';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { FlexLayoutModule } from '@angular/flex-layout';
-import {MatGridListModule} from '@angular/material/grid-list';
 import {MatTableModule} from '@angular/material/table';
+import {MatButtonModule} from '@angular/material/button';
+import {FormsModule} from '@angular/forms';
+import {MatSelectModule} from '@angular/material/select';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 @NgModule({
   declarations: [
@@ -19,8 +22,11 @@ import {MatTableModule} from '@angular/material/table';
     MatInputModule,
     HttpClientModule,
     FlexLayoutModule,
-    MatGridListModule,
-    MatTableModule
+    MatTableModule,
+    MatButtonModule,
+    FormsModule,
+    MatSelectModule,
+    BrowserAnimationsModule
   ],
   providers: [],
   bootstrap: [AppComponent]
