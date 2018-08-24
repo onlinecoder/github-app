@@ -1,96 +1,92 @@
-import { Component, ViewChild, OnInit } from '@angular/core';
+import { Component, ViewChild, OnInit, OnDestroy } from '@angular/core';
 import { MatSelectionList, MatSelectionListChange, MatListOption, MatSelectChange, MatSelect } from '@angular/material';
 import { SelectionModel } from '@angular/cdk/collections';
 import { HttpClient } from '@angular/common/http';
-import { map, flatMap, switchMap, catchError, tap} from 'rxjs/operators';
-import { find, orderBy, first } from 'lodash';
-import { Repo} from './Repo';
-import { fromEvent, Subject, Observable, merge, empty } from 'rxjs';
+import { map, flatMap, switchMap, catchError, tap } from 'rxjs/operators';
+import { find, orderBy, first, each } from 'lodash';
+import { Repo } from './Repo';
+import { fromEvent, Subject, Observable, merge, empty, Subscription } from 'rxjs';
+import { GitHubService } from './git-hub-service/git-hub.service';
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit {
-  title = 'app';
-  repos: Array<Repo>;
-  commits: Array<Commit>;
-  columnsToDisplay = ['commitMessage', 'commitAuthor'];
-  orgName = 'NVIDIA';
-  selectedRepoId = -1;
-  private fetchSubject: Subject<Boolean> = new Subject();
+export class AppComponent implements OnInit, OnDestroy {
+    title = 'app';
+    repos: Array<Repo> = [];
+    commits: Array<Commit> = [];
+    columnsToDisplay = ['commitMessage', 'commitAuthor', 'commitDate'];
+    orgName = 'Netflix';
+    selectedRepoId = -1;
+    // Should use fromEvent to map click/selection events to observables
+    // but cant get selectionChange to work with MatOption
+    // As a workaround, maintain and 'next' a subject
+    // The boolean flag is used to differentiate button click of
+    // the submit button versus the selectionChange of the
+    // repos dropdown
+    private fetchSubject: Subject<Boolean> = new Subject();
+    private subscription: Subscription;
 
-  @ViewChild(MatSelect) reposList: MatSelect;
+    @ViewChild(MatSelect) reposList: MatSelect;
 
-  constructor(private httpClient: HttpClient) {
-    // this.repos = [
-    //     {id: 1, name: 'nvidia'},
-    //     {id: 5, name: 'foobar'}
-    // ];
-    // this.selectedRepoId = 1;
-  }
+    constructor(private httpClient: HttpClient, private gitHubService: GitHubService) {
+    }
 
-  onSelectionChange(event: MatSelectChange) {
-    console.info('GOT CHANGE EVT', event.value);
-    this.selectedRepoId = event.value;
-    this.fetchSubject.next(false);
-  }
+    onSelectionChange(event: MatSelectChange) {
+        this.selectedRepoId = event.value;
+        this.fetchSubject.next(false);
+    }
 
-  ngOnInit() {
-    this.fetchSubject.pipe(
-        switchMap((x) => {
-            const git$ = x === true ? this.getReposAndCommits() : this.getCommits();
-            return git$.pipe(
-               // catchError(() => empty())
+    ngOnInit() {
+        this.subscription = this.fetchSubject.pipe(
+            switchMap((x) => {
+                return x === true ? this.getReposAndCommits() : this.getCommits();
+            })).subscribe(
+                () => console.log('Got commits'),
+                (e) => console.error('Error fetching', e)
             );
-        })).subscribe(() => console.log('GOT COMMITS'));
-    this.fetchSubject.next(true);
+    }
 
-  }
+    ngOnDestroy() {
+        if (this.subscription) {
+            this.subscription.unsubscribe();
+        }
+    }
 
-  onGetRepos() {
-    this.fetchSubject.next(true);
-  }
+    onGetRepos() {
+        this.fetchSubject.next(true);
+    }
 
-  getReposAndCommits() {
-    return this.getRepos().pipe(
-        tap(x => console.log('before calling commits')),
-        flatMap(_ => this.getCommits())
-    );
-  }
+    getReposAndCommits() {
+        return this.getRepos().pipe(
+            flatMap(_ => this.getCommits())
+        );
+    }
 
-  getRepos() {
-    return this.httpClient.get<Array<Repo>>(`https://api.github.com/orgs/${this.orgName}/repos`, {
-    // this.httpClient.get<Array<Repo>>('https://api.github.com/organizations/913567/repos?page=5', {
-        observe: 'response'
-    }).pipe(
-        map((repos) => {
-            this.repos = orderBy(repos.body, ['forks'], ['desc']);
-            this.selectedRepoId = first(this.repos).id;
-            return repos;
-        }),
-        catchError(() => {
-            this.repos = [];
-            this.commits = [];
-            return empty();
-        })
-    );
-  }
+    getRepos() {
+        return this.gitHubService.getRepos(this.orgName).pipe(
+            map((repos) => {
+                this.repos = repos;
+                this.selectedRepoId = first(this.repos).id;
+                return repos;
+            }),
+            catchError(() => {
+                this.repos = null;
+                this.commits = null;
+                return empty();
+            })
+        );
+    }
 
-  getCommits() {
-    const selectedRepo = find( this.repos, (repo) => repo.id === this.selectedRepoId);
-    console.info('Getting COMMITS', selectedRepo.owner.login, selectedRepo.name);
-    const url = `https://api.github.com/repos/${selectedRepo.owner.login}/${selectedRepo.name}/commits`;
-    return this.httpClient.get<any>(url).pipe(
-        map((x) => {
-            this.commits = x;
-            return x;
-        }),
-        catchError(() => {
-            this.commits = [];
-            return empty();
-        })
-    );
-  }
+    getCommits() {
+        return this.gitHubService.getCommits(this.repos, this.selectedRepoId).pipe(
+            tap(c => this.commits = c),
+            catchError(() => {
+                this.commits = null;
+                return empty();
+            })
+        );
+    }
 }

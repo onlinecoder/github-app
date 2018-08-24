@@ -1,31 +1,42 @@
-
 <div fxLayout="column" fxFlex fxLayoutAlign="center center">
-  <mat-form-field>
-    <input matInput placeholder="Org Name" [(ngModel)]="orgName"/>
-  </mat-form-field>
-  <button mat-raised-button color="primary" [disabled]="orgName===''" (click)="onGetRepos()">Submit</button>
-  <mat-form-field>
-    <mat-select  (selectionChange)="onSelectionChange($event)" [value]="selectedRepoId">
-      <mat-option *ngFor="let repo of repos"  [value]='repo.id'>
-            {{repo.name}} ({{repo.forks}})
-      </mat-option>
-    </mat-select>
-  </mat-form-field>
+    <mat-form-field>
+        <input matInput placeholder="Org Name" [(ngModel)]="orgName" />
+    </mat-form-field>
 
-  <div fxLayout="row" >
-    <table mat-table [dataSource]="commits" fxFlex>
-        <ng-container matColumnDef="commitMessage">
-          <th mat-header-cell *matHeaderCellDef> Message </th>
-          <td mat-cell *matCellDef="let commit"> {{commit.commit.message}} </td>
-        </ng-container>
+    <button mat-raised-button color="primary" [disabled]="orgName===''" (click)="onGetRepos()">Submit</button>
 
-        <ng-container matColumnDef="commitAuthor">
-            <th mat-header-cell *matHeaderCellDef> Author </th>
-            <td mat-cell *matCellDef="let commit"> {{commit.commit.author.name}} </td>
-          </ng-container>
+    <mat-form-field *ngIf="repos?.length > 0">
+        <mat-select (selectionChange)="onSelectionChange($event)" [value]="selectedRepoId">
+            <mat-option *ngFor="let repo of repos" [value]='repo.id'>
+                {{repo.name}} ({{repo.forks}})
+            </mat-option>
+        </mat-select>
+    </mat-form-field>
 
-        <tr mat-header-row *matHeaderRowDef="columnsToDisplay"></tr>
-        <tr mat-row *matRowDef="let row; columns: columnsToDisplay;"></tr>
-      </table>
-  </div>
+    <div fxLayout="row" *ngIf="commits?.length > 0">
+        <table mat-table [dataSource]="commits" fxFlex>
+            <ng-container matColumnDef="commitMessage">
+                <th mat-header-cell *matHeaderCellDef class="cellStyle"> Message </th>
+                <td mat-cell *matCellDef="let commit" class="cellStyle"> {{commit?.commit?.message}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="commitAuthor">
+                <th mat-header-cell *matHeaderCellDef class="cellStyle"> Author </th>
+                <td mat-cell *matCellDef="let commit" class="cellStyle"> {{commit?.commit?.author?.name}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="commitDate">
+                <th mat-header-cell *matHeaderCellDef class="cellStyle"> Date </th>
+                <td mat-cell *matCellDef="let commit" class="cellStyle"> {{commit?.commit?.author?.date}} </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="columnsToDisplay" class="cellStyle"></tr>
+            <tr mat-row *matRowDef="let row; columns: columnsToDisplay;"></tr>
+        </table>
+    </div>
+
+    <div *ngIf="commits === null || repos === null">
+        <p>Something went wrong. It is possible the organization does not own repos...pls try again</p>
+    </div>
+
 </div>
