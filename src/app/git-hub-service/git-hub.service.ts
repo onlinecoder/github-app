@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Repo } from '../Repo';
 import { map, expand, take, bufferCount, tap } from 'rxjs/operators';
-import { Observable, empty } from 'rxjs';
+import { Observable, empty, throwError } from 'rxjs';
 import { CommitInfo } from '../Commit';
 import { Chain } from '@angular/compiler';
 import { each, orderBy, find, chain, first, last } from 'lodash';
@@ -36,17 +36,21 @@ export class GitHubService {
 
     getCommits(repos: Array<Repo>, selectedRepoId: number): Observable<Array<CommitInfo>> {
         const selectedRepo = find(repos, (repo) => repo.id === selectedRepoId);
-        console.info('Getting Commits for ', selectedRepo.owner.login, selectedRepo.name);
-        const encodedOwner = encodeURI(selectedRepo.owner.login);
-        const encodedRepo = encodeURI(selectedRepo.name);
-        const url = `https://api.github.com/repos/${encodedOwner}/${encodedRepo}/commits`;
-        return this.httpClient.get<Array<CommitInfo>>(url).pipe(
-            map((commits) => {
-                // pick only the first 100 chars of the commit message
-                each(commits, (c) => c.commit.message = c.commit.message.slice(0, 100));
-                return commits;
-            }),
-        );
+        if (selectedRepo) {
+            console.info('Getting Commits for ', selectedRepo.owner.login, selectedRepo.name);
+            const encodedOwner = encodeURI(selectedRepo.owner.login);
+            const encodedRepo = encodeURI(selectedRepo.name);
+            const url = `https://api.github.com/repos/${encodedOwner}/${encodedRepo}/commits`;
+            return this.httpClient.get<Array<CommitInfo>>(url).pipe(
+                map((commits) => {
+                    // pick only the first 100 chars of the commit message
+                    each(commits, (c) => c.commit.message = c.commit.message.slice(0, 100));
+                    return commits;
+                }),
+            );
+        } else {
+            return throwError('Invalid repo');
+        }
     }
 
     // Did not have enough time to test this function, so terminating the stream

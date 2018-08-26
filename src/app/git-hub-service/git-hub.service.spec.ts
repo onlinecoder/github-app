@@ -18,7 +18,7 @@ describe('GitHubService', () => {
             'login': 'Netflix',
             'id': 913567,
         },
-        'forks_count': 500,
+        'forks_count': 374,
         'mirror_url': null,
     }, {
         'id': 2049379,
@@ -29,7 +29,7 @@ describe('GitHubService', () => {
             'login': 'Netflix',
             'id': 913567,
         },
-        'forks_count': 374,
+        'forks_count': 500,
         'mirror_url': null,
     }];
 
@@ -72,9 +72,7 @@ describe('GitHubService', () => {
             'message': 'Merge pull request #1797 from MenschNestor/master\n\nStabilize yet another test',
             'tree': {
                 'sha': '76ead455df3f538c146e61f678fcf9a34721e018',
-                'url': 'https://api.github.com/repos/Netflix/Hystrix/git/trees/76ead455df3f538c146e61f678fcf9a34721e018'
             },
-            'url': 'https://api.github.com/repos/Netflix/Hystrix/git/commits/7f5a0afc23aa5ff82320560a04d4c81a45efd67c',
             'comment_count': 0,
             'verification': {
                 'verified': true,
@@ -106,7 +104,8 @@ describe('GitHubService', () => {
     it('should get repos sorted by forks', () => {
         const mockRepos$ = cold('(x|)', { x: mockRepoResponse });
         (<jasmine.Spy>mockHttpService.get).and.returnValue(mockRepos$);
-        const expected = cold('(x|)', { x: mockRepos });
+        const orderedRepos = [mockRepos[1], mockRepos[0]];
+        const expected = cold('(x|)', { x: orderedRepos });
         expect(service.getRepos('Netflix')).toBeObservable(expected);
     });
 
@@ -118,10 +117,17 @@ describe('GitHubService', () => {
         expect(service.getRepos('Netflix')).toBeObservable(expected);
     });
 
-    it('should return commits', () => {
+    it('should get commits', () => {
         const mockCommits$ = cold('(x|)', { x: mockCommits });
         (<jasmine.Spy>mockHttpService.get).and.returnValue(mockCommits$);
         const expected = cold('(x|)', { x: mockCommits });
         expect(service.getCommits(mockRepos as any, 2049379)).toBeObservable(expected);
+    });
+
+    it('should throw error if invalid repo', () => {
+        const mockCommits$ = cold('(x|)', { x: mockCommits });
+        (<jasmine.Spy>mockHttpService.get).and.returnValue(mockCommits$);
+        const expected = cold('#', null, 'Invalid repo');
+        expect(service.getCommits(mockRepos as any, 999)).toBeObservable(expected);
     });
 });

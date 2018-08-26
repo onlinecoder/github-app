@@ -7,6 +7,7 @@ import { FlexLayoutModule } from '@angular/flex-layout';
 import { FormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule } from '@angular/common/http';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 describe('AppComponent', () => {
     beforeEach(async(() => {
@@ -24,10 +25,12 @@ describe('AppComponent', () => {
                 FormsModule,
                 MatSelectModule,
                 BrowserAnimationsModule,
-                HttpClientModule
+                HttpClientModule,
+                MatProgressSpinnerModule
             ],
         }).compileComponents();
     }));
+
     it('should create the app', async(() => {
         const fixture = TestBed.createComponent(AppComponent);
         const app = fixture.debugElement.componentInstance;
