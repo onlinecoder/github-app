@@ -1,4 +1,4 @@
-interface CommitInfo {
+export interface CommitInfo {
     sha: string;
     node_id: string;
     commit: Commit;
@@ -8,15 +8,15 @@ interface CommitInfo {
     author: Author2;
     committer: Author2;
     parents: Parent[];
-  }
-  
-  interface Parent {
+}
+
+export interface Parent {
     sha: string;
     url: string;
     html_url: string;
-  }
-  
-  interface Author2 {
+}
+
+export interface Author2 {
     login: string;
     id: number;
     node_id: string;
@@ -35,9 +35,9 @@ interface CommitInfo {
     received_events_url: string;
     type: string;
     site_admin: boolean;
-  }
-  
-  interface Commit {
+}
+
+export interface Commit {
     author: Author;
     committer: Author;
     message: string;
@@ -45,22 +45,22 @@ interface CommitInfo {
     url: string;
     comment_count: number;
     verification: Verification;
-  }
-  
-  interface Verification {
+}
+
+export interface Verification {
     verified: boolean;
     reason: string;
     signature?: string;
     payload?: string;
-  }
-  
-  interface Tree {
+}
+
+export interface Tree {
     sha: string;
     url: string;
-  }
-  
-  interface Author {
+}
+
+export interface Author {
     name: string;
     email: string;
     date: string;
-  }
+}
