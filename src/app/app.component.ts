@@ -74,13 +74,13 @@ export class AppComponent implements OnInit, OnDestroy {
         this.fetchSubject.next(true);
     }
 
-    getReposAndCommits(): Observable<Array<CommitInfo>> {
+    private getReposAndCommits(): Observable<Array<CommitInfo>> {
         return this.getRepos().pipe(
             flatMap(_ => this.getCommits())
         );
     }
 
-    getRepos(): Observable<Array<Repo>> {
+    private getRepos(): Observable<Array<Repo>> {
         return this.gitHubService.getRepos(this.orgName).pipe(
             map((repos) => {
                 this.repos = repos;
@@ -95,7 +95,7 @@ export class AppComponent implements OnInit, OnDestroy {
         );
     }
 
-    getCommits() {
+    private getCommits(): Observable<Array<CommitInfo>> {
         return this.gitHubService.getCommits(this.repos, this.selectedRepoId).pipe(
             tap(c => this.commits = c),
             catchError((e) => {

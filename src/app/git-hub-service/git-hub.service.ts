@@ -4,9 +4,7 @@ import { Repo } from '../Repo';
 import { map, expand, take, bufferCount, tap } from 'rxjs/operators';
 import { Observable, empty, throwError } from 'rxjs';
 import { CommitInfo } from '../Commit';
-import { Chain } from '@angular/compiler';
 import { each, orderBy, find, chain, first, last } from 'lodash';
-//import { map as lodashMap } from 'lodash';
 
 @Injectable({
     providedIn: 'root'
@@ -28,6 +26,7 @@ export class GitHubService {
             expand(resp => this.getMoreRepos(resp)),
             bufferCount(1), // change this to count of pages based on the link header
             map((resp) => {
+                // merge all the repos before doing the sort
                 orderedRepos = orderBy(resp[0].body, ['forks_count'], ['desc']);
                 return orderedRepos;
             }),
